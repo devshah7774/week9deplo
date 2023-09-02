@@ -1,0 +1,25 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - master 
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up SSH and deploy
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      run: |
+        mkdir -p ~/.ssh
+        echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -t rsa ec2-3-85-42-86.compute-1.amazonaws.com >> ~/.ssh/known_hosts
+        chmod 644 ~/.ssh/known_hosts
+        ssh -i ~/.ssh/id_rsa ubuntu@ec2-3-85-42-86.compute-1.amazonaws.com "sudo bash ~/deploy.sh"
